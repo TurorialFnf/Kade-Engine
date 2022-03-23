@@ -1,12 +1,8 @@
 package;
 
-import openfl.display.Bitmap;
-import lime.app.Application;
-#if FEATURE_DISCORD
-import Discord.DiscordClient;
-#end
 import openfl.display.BlendMode;
 import openfl.text.TextFormat;
+import openfl.display.Application;
 import flixel.util.FlxColor;
 import flixel.FlxG;
 import flixel.FlxGame;
@@ -21,31 +17,26 @@ class Main extends Sprite
 {
 	var gameWidth:Int = 1280; // Width of the game in pixels (might be less / more in actual pixels depending on your zoom).
 	var gameHeight:Int = 720; // Height of the game in pixels (might be less / more in actual pixels depending on your zoom).
-	var initialState:Class<FlxState> = TitleState; // The FlxState the game starts with.
+	var initialState:Class<FlxState> = WarningState; // The FlxState the game starts with. //CHANGE THIS TO BIRDY MENU LOL
 	var zoom:Float = -1; // If -1, zoom is automatically calculated to fit the window dimensions.
 	var framerate:Int = 120; // How many frames per second the game should run at.
 	var skipSplash:Bool = true; // Whether to skip the flixel splash screen that appears in release mode.
 	var startFullscreen:Bool = false; // Whether to start the game in fullscreen on desktop targets
 
-	public static var bitmapFPS:Bitmap;
-
-	public static var instance:Main;
-
-	public static var watermarks = true; // Whether to put Kade Engine literally anywhere
+	public static var watermarks = true; // Whether to put Kade Engine liteartly anywhere
 
 	// You can pretty much ignore everything from here on - your code should go in your states.
 
 	public static function main():Void
 	{
-		// quick checks
+
+		// quick checks 
 
 		Lib.current.addChild(new Main());
 	}
 
 	public function new()
 	{
-		instance = this;
-
 		super();
 
 		if (stage != null)
@@ -57,8 +48,6 @@ class Main extends Sprite
 			addEventListener(Event.ADDED_TO_STAGE, init);
 		}
 	}
-
-	public static var webmHandler:WebmHandler;
 
 	private function init(?E:Event):Void
 	{
@@ -84,60 +73,28 @@ class Main extends Sprite
 			gameHeight = Math.ceil(stageHeight / zoom);
 		}
 
-		#if !cpp
-		framerate = 60;
-		#end
-
-		// Run this first so we can see logs.
-		Debug.onInitProgram();
-
-		// Gotta run this before any assets get loaded.
-		ModCore.initialize();
-
-		#if !mobile
-		fpsCounter = new KadeEngineFPS(10, 3, 0xFFFFFF);
-		bitmapFPS = ImageOutline.renderImage(fpsCounter, 1, 0x000000, true);
-		bitmapFPS.smoothing = true;
+		#if !debug
+		initialState = WarningState; //CHANGE THIS TO BIRDY MENU LOL
 		#end
 
 		game = new FlxGame(gameWidth, gameHeight, initialState, zoom, framerate, framerate, skipSplash, startFullscreen);
+
 		addChild(game);
 
 		#if !mobile
+		fpsCounter = new FPS(10, 3, 0xFFFFFF);
 		addChild(fpsCounter);
 		toggleFPS(FlxG.save.data.fps);
-		#end
 
-		// Finish up loading debug tools.
-		Debug.onGameStart();
+		#end
 	}
 
 	var game:FlxGame;
 
-	var fpsCounter:KadeEngineFPS;
+	var fpsCounter:FPS;
 
-	// taken from forever engine, cuz optimization very pog.
-	// thank you shubs :)
-	public static function dumpCache()
-	{
-		///* SPECIAL THANKS TO HAYA
-		@:privateAccess
-		for (key in FlxG.bitmap._cache.keys())
-		{
-			var obj = FlxG.bitmap._cache.get(key);
-			if (obj != null)
-			{
-				Assets.cache.removeBitmapData(key);
-				FlxG.bitmap._cache.remove(key);
-				obj.destroy();
-			}
-		}
-		Assets.cache.clear("songs");
-		// */
-	}
-
-	public function toggleFPS(fpsEnabled:Bool):Void
-	{
+	public function toggleFPS(fpsEnabled:Bool):Void {
+		fpsCounter.visible = fpsEnabled;
 	}
 
 	public function changeFPSColor(color:FlxColor)
